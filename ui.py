@@ -21,6 +21,7 @@ class UI:
             for x in range(self.game.width):
                 button = tk.Button(self.root, text="", width=2, command=lambda x=x, y=y: self.click(x, y))
                 button.grid(row=y+1, column=x, sticky="nsew")
+                button.bind("<3>", lambda event, x=x, y=y: self.right_click(x, y))
                 row.append(button)
             self.buttons.append(row)
 
@@ -51,6 +52,16 @@ class UI:
             self.buttons[y][x].config(text=str(self.game.grid[y][x]), bg="gray")
         if self.game.game_over:
             self.root.title("Game Over!")
+        elif self.game.check_win():
+            self.root.after_cancel(self.timer_id)  # stop the timer
+            self.root.title("You Win!")
+
+    def right_click(self, x, y):
+        if self.game.revealed[y][x]:
+            return
+        flag_image = ImageTk.PhotoImage(Image.open("assets/bomb-flag.png"))
+        self.buttons[y][x].config(image=flag_image, bg="yellow")
+        self.buttons[y][x].image = flag_image  # keep a reference to the image
 
     def update_button(self, x, y):
         if self.game.revealed[y][x]:
