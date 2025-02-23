@@ -21,12 +21,13 @@ class Minesweeper:
             game_over (bool): Flag indicating if the game is over.
         """
 
-        self.width = 26
-        self.height = 26
+        self.width = 9
+        self.height = 9
         self.num_mines = 10
         self.grid = [[0 for _ in range(self.width)] for _ in range(self.height)]
         self.revealed = [[False for _ in range(self.width)] for _ in range(self.height)]
         self.game_over = False
+        self.game_win = False
 
         # Randomly place mines
         mines_placed = 0
@@ -74,4 +75,6 @@ class Minesweeper:
     
     def check_win(self):
         unrevealed_tiles = sum(1 for row in self.revealed for cell in row if not cell)
-        return unrevealed_tiles == self.num_mines
+        if unrevealed_tiles == self.num_mines:
+            self.game_win = True
+        return self.game_win
