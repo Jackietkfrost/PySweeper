@@ -71,3 +71,7 @@ class Minesweeper:
                 for dx in [-1, 0, 1]:
                     if 0 <= x+dx < self.width and 0 <= y+dy < self.height:
                         self.click(x+dx, y+dy)
+    
+    def check_win(self):
+        unrevealed_tiles = sum(1 for row in self.revealed for cell in row if not cell)
+        return unrevealed_tiles == self.num_mines
