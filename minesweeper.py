@@ -24,6 +24,7 @@ class Minesweeper:
         self.width = 9
         self.height = 9
         self.num_mines = 10
+        self.flags_remaining = self.num_mines
         self.grid = [[0 for _ in range(self.width)] for _ in range(self.height)]
         self.revealed = [[False for _ in range(self.width)] for _ in range(self.height)]
         self.game_over = False
