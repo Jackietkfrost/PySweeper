@@ -1,7 +1,16 @@
 import random
+from enum import Enum
+class Difficulty(Enum):
+    BEGINNER = (9, 9, 10)
+    INTERMEDIATE = (16, 16, 40)
+    EXPERT = (30, 16, 99)
+    def __init__(self, width, height, num_mines):
+        self.width = width
+        self.height = height
+        self.num_mines = num_mines
 
 class Minesweeper:
-    def __init__(self):
+    def __init__(self, difficulty=Difficulty.BEGINNER):
         """
         Initialize the Minesweeper game board.
 
@@ -21,9 +30,10 @@ class Minesweeper:
             game_over (bool): Flag indicating if the game is over.
         """
 
-        self.width = 9
-        self.height = 9
-        self.num_mines = 10
+        self.difficulty = difficulty
+        self.width = difficulty.width
+        self.height = difficulty.height
+        self.num_mines = difficulty.num_mines
         self.flags_remaining = self.num_mines
         self.grid = [[0 for _ in range(self.width)] for _ in range(self.height)]
         self.revealed = [[False for _ in range(self.width)] for _ in range(self.height)]
