@@ -24,8 +24,8 @@ class UI:
         self.timer = Timer()
         self.time_label = ttk.Label(master= self.mainframe, text="Time: 0.0", style="MS.TLabel")
         self.time_label.grid(row=0, column=0, columnspan=self.game.width,sticky="w")
-        self.mines_marked_label = ttk.Label(master=self.mainframe, text="Flags: 0/{}".format(self.game.num_mines), style="MS.TLabel")
-        self.mines_marked_label.grid(row=0, column=self.game.width//2, columnspan=self.game.width//2, sticky="e")
+        self.flags_remaining_label = ttk.Label(master=self.mainframe, text="Flags: {}".format(self.game.flags_remaining), style="MS.TLabel")
+        self.flags_remaining_label.grid(row=0, column=self.game.width//2, columnspan=self.game.width//2, sticky="e")
         for y in range(self.game.height):
             row = []
             for x in range(self.game.width):
@@ -53,15 +53,17 @@ class UI:
             return
         if self.game.revealed[y][x]:
             return
+        
         self.game.revealed[y][x] = True
+        if self.game.check_win():
+            self.game_win()
         # If tile is bomb:
         if self.game.grid[y][x] == -1:
             bomb_image = ImageTk.PhotoImage(Image.open("assets/bomb.png"))
             # self.buttons[y][x].config(text="*", bg="red")
             self.buttons[y][x].config(image=bomb_image, style="MS_bomb.TButton")
             self.buttons[y][x].image = bomb_image  # keep a reference to the image
-            self.game.game_over = True
-            self.root.after_cancel(self.timer_id)  # stop the timer
+            self.game_over()
 
         # Get all bombs and show them, unless the bomb has been flagged.
             for i in range(self.game.height):
@@ -82,11 +84,9 @@ class UI:
         else:
             self.buttons[y][x].config(text=str(self.game.grid[y][x]), state="disabled", style="MS_pressed.TButton")
         
-        if self.game.game_over:
-            self.game_over()
-        elif self.game.check_win():
-            self.root.after_cancel(self.timer_id)  # stop the timer
-            self.game_win()
+        # if self.game.game_over:
+        #     self.game_over()
+        
 
     def right_click(self, x, y):
         if self.game.revealed[y][x] or self.game.game_win or self.game.game_over:
@@ -95,18 +95,28 @@ class UI:
             # Remove flag
             self.buttons[y][x].config(image="")
             del self.buttons[y][x].flagged
+            self.game.flags_remaining += 1
         else:
             # Add flag
             flag_image = ImageTk.PhotoImage(Image.open("assets/bomb-flag.png"))
-            self.buttons[y][x].config(image=flag_image)
-            self.buttons[y][x].image = flag_image  # keep a reference to the image
-            self.buttons[y][x].flagged = True
+            if self.game.flags_remaining > 0:
+                self.game.flags_remaining -= 1
+                self.buttons[y][x].config(image=flag_image)
+                self.buttons[y][x].image = flag_image  # keep a reference to the image
+                self.buttons[y][x].flagged = True
+            else:
+                return
+        self.flags_remaining_label.config(text="Flags: {}".format(self.game.flags_remaining))
 
 
     def game_over(self):
+        self.root.after_cancel(self.timer_id)
+        self.game.game_over = True
         self.root.title("Game Over!")
 
     def game_win(self):
+        self.root.after_cancel(self.timer_id)
+        self.game.game_win = True
         self.root.title("You Win!")
     def run(self):
         self.update_timer()
