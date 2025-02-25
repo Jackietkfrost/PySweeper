@@ -40,9 +40,13 @@ class Minesweeper:
         self.game_over = False
         self.game_win = False
 
+        self.place_mines(self.num_mines)
+        
+
+    def place_mines(self, num_mines):
         # Randomly place mines
         mines_placed = 0
-        while mines_placed < self.num_mines:
+        while mines_placed < num_mines:
             x, y = random.randint(0, self.width-1), random.randint(0, self.height-1)
             if self.grid[y][x] == 0:
                 self.grid[y][x] = -1
@@ -60,6 +64,7 @@ class Minesweeper:
                             if self.grid[y+dy][x+dx] == -1:
                                 count += 1
                 self.grid[y][x] = count
+
 
     def click(self, x, y):
         """
@@ -84,6 +89,17 @@ class Minesweeper:
                     if 0 <= x+dx < self.width and 0 <= y+dy < self.height:
                         self.click(x+dx, y+dy)
     
+    def reset(self):
+        self.width = self.difficulty.width
+        self.height = self.difficulty.height
+        self.num_mines = self.difficulty.num_mines
+        self.flags_remaining = self.num_mines
+        self.grid = [[0 for _ in range(self.width)] for _ in range(self.height)]
+        self.revealed = [[False for _ in range(self.width)] for _ in range(self.height)]
+        self.game_over = False
+        self.game_win = False
+        self.place_mines(self.num_mines)
+
     def check_win(self):
         unrevealed_tiles = sum(1 for row in self.revealed for cell in row if not cell)
         if unrevealed_tiles == self.num_mines:

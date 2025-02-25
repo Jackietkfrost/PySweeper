@@ -24,6 +24,8 @@ class UI:
         self.timer = Timer()
         self.time_label = ttk.Label(master= self.mainframe, text="Time: 0", style="MS.TLabel")
         self.time_label.grid(row=0, column=0, columnspan=self.game.width,sticky="w")
+        self.reset_button = ttk.Button(self.mainframe, text="Reset", command=self.reset_game, style="MS.TButton")
+        self.reset_button.grid(row=0, column=self.game.width//2, sticky="nsew")
         self.flags_remaining_label = ttk.Label(master=self.mainframe, text="Flags: {}".format(self.game.flags_remaining), style="MS.TLabel")
         self.flags_remaining_label.grid(row=0, column=self.game.width//2, columnspan=self.game.width//2, sticky="e")
         for y in range(self.game.height):
@@ -109,6 +111,23 @@ class UI:
                 return
         self.flags_remaining_label.config(text="Flags: {}".format(self.game.flags_remaining))
 
+    def reset_game(self):
+        self.game.reset()  # Call the reset method on the game object
+        self.styles = MinesweeperStyles()  # Re-initialize the styles
+        self.root.title("Minesweeper")  # Reset the window title
+        self.time_label.config(text="Time: 0")  # Reset the time label
+        self.flags_remaining_label.config(text="Flags: {}".format(self.game.flags_remaining))  # Reset the flags label
+        self.timer_id = None  # Reset the timer
+        self.buttons = []  # Clear the buttons list
+        self.timer = Timer()  # Re-initialize the timer
+        for y in range(self.game.height):
+            row = []
+            for x in range(self.game.width):
+                button = ttk.Button(self.mainframe, text="", command=lambda x=x, y=y: self.click(x, y), style="MS.TButton")
+                button.grid(row=y+1, column=x, sticky="nsew")
+                button.bind("<3>", lambda event, x=x, y=y: self.right_click(x, y))
+                row.append(button)
+            self.buttons.append(row)
 
     def game_over(self):
         self.root.after_cancel(self.timer_id)
