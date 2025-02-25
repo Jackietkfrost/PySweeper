@@ -13,16 +13,16 @@ class UI:
         :param game: a Minesweeper game
         """
         self.game = game
+        self.root.title("Minesweeper")
         self.styles = MinesweeperStyles()
         self.mainframe = ttk.Frame(self.root, width=2, height=8, padding="3 3 12 12", style="MS.TFrame" )
         self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
-
-        self.root.title("Minesweeper")
+        self.timer_id = None
         self.buttons = []
         self.timer = Timer()
-        self.time_label = ttk.Label(master= self.mainframe, text="Time: 0.0", style="MS.TLabel")
+        self.time_label = ttk.Label(master= self.mainframe, text="Time: 0", style="MS.TLabel")
         self.time_label.grid(row=0, column=0, columnspan=self.game.width,sticky="w")
         self.flags_remaining_label = ttk.Label(master=self.mainframe, text="Flags: {}".format(self.game.flags_remaining), style="MS.TLabel")
         self.flags_remaining_label.grid(row=0, column=self.game.width//2, columnspan=self.game.width//2, sticky="e")
@@ -42,27 +42,30 @@ class UI:
         This method is called repeatedly by the after method to update the timer
         label. It stops once the game is over.
         """
-        
-        self.timer.update()
-        time_str = "Time: {:.0f}".format(self.timer.get_time())
-        self.time_label.config(text=time_str)
-        self.timer_id = self.root.after(1000, self.update_timer)  # store the ID
+        if self.timer_id is None:
+            self.timer_id = self.root.after(1000, self.update_timer)  
+        else:
+            self.timer.update()
+            time_str = "Time: {:.0f}".format(self.timer.get_time())
+            self.time_label.config(text=time_str)
+            self.timer_id = self.root.after(1000, self.update_timer)
 
     def click(self, x, y):
         if self.game.game_over or self.game.game_win:
             return
         if self.game.revealed[y][x]:
             return
-        
+        if self.timer_id is None:
+            self.update_timer()
         self.game.revealed[y][x] = True
         if self.game.check_win():
             self.game_win()
+            
         # If tile is bomb:
         if self.game.grid[y][x] == -1:
             bomb_image = ImageTk.PhotoImage(Image.open("assets/bomb.png"))
-            # self.buttons[y][x].config(text="*", bg="red")
             self.buttons[y][x].config(image=bomb_image, style="MS_bomb.TButton")
-            self.buttons[y][x].image = bomb_image  # keep a reference to the image
+            self.buttons[y][x].image = bomb_image
             self.game_over()
 
         # Get all bombs and show them, unless the bomb has been flagged.
@@ -72,7 +75,7 @@ class UI:
                         if not hasattr(self.buttons[i][j], 'flagged'):
                             bomb_image = ImageTk.PhotoImage(Image.open("assets/bomb.png"))
                             self.buttons[i][j].config(image=bomb_image)
-                            self.buttons[i][j].image = bomb_image  # keep a reference to the image
+                            self.buttons[i][j].image = bomb_image
         # Else if tile is not a bomb, and is empty:
         elif self.game.grid[y][x] == 0:
             self.buttons[y][x].config(text="", state="disabled",  style="MS_pressed.TButton")
@@ -83,14 +86,12 @@ class UI:
         # Else show the number of the tile:
         else:
             self.buttons[y][x].config(text=str(self.game.grid[y][x]), state="disabled", style="MS_pressed.TButton")
-        
-        # if self.game.game_over:
-        #     self.game_over()
-        
 
     def right_click(self, x, y):
         if self.game.revealed[y][x] or self.game.game_win or self.game.game_over:
             return
+        if self.timer_id is None:
+            self.update_timer() 
         if hasattr(self.buttons[y][x], 'flagged'):
             # Remove flag
             self.buttons[y][x].config(image="")
@@ -119,5 +120,4 @@ class UI:
         self.game.game_win = True
         self.root.title("You Win!")
     def run(self):
-        self.update_timer()
         self.root.mainloop()
